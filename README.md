@@ -1,5 +1,7 @@
 # PHP SDK for Pusher Push Notifications
 
+This SDK lets you publish from PHP to [Pusher Push Notifications](https://todo.newpushnotifications.url).
+
 ## Installation
 
 [Get Composer](http://getcomposer.org/),
