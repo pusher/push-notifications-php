@@ -1,6 +1,8 @@
 <?php
 namespace Pusher;
 class PushNotifications {
+  const SDK_VERSION = "0.0.1";
+
   public function __construct($options) {
     $this->options = $options + array(
       "endpoint" => "https://errol-server-production.herokuapp.com",
@@ -28,7 +30,7 @@ class PushNotifications {
       'Content-Type: application/json',
       'Content-Length: ' . strlen($body_string),
       'Authorization: Bearer ' . $this->options["secretKey"],
-      'X-Pusher-Library: pusher-push-notifications-php',
+      'X-Pusher-Library: pusher-push-notifications-php ' . self::SDK_VERSION,
     ));
     $response_body = curl_exec($curl_handle);
     $response_status = curl_getinfo($curl_handle, CURLINFO_HTTP_CODE);
