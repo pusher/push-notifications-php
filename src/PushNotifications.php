@@ -1,5 +1,5 @@
 <?php
-namespace Pusher;
+namespace \Pusher\PushNotifications;
 class PushNotifications {
   const SDK_VERSION = "0.0.1";
 
