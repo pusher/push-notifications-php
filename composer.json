@@ -4,3 +4,4 @@
     "autoload": {
         "psr-4": {"Pusher\\PushNotifications\\": "src/"}
     }
+}
