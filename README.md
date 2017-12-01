@@ -3,10 +3,10 @@
 ## Installation
 
 [Get Composer](http://getcomposer.org/),
-[then get the `pusher-push-notifications` Composer package](https://packagist.org/packages/pusher/pusher-push-notifications):
+[then get the `pusher/push-notifications` Composer package](https://packagist.org/packages/pusher/push-notifications):
 
 ```bash
-$ composer require pusher/pusher-push-notifications
+$ composer require pusher/push-notifications
 ```
 
 This SDK depends on [the cURL PHP module](http://php.net/manual/en/curl.installation.php)
