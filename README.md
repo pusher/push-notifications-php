@@ -1,5 +1,9 @@
 # PHP SDK for Pusher Push Notifications
 
+PHP server library for publishing notifications through Pusher.
+
+Check https://www.pusher.com/push-notifications for more information about this service.
+
 ## Installation
 
 [Get Composer](http://getcomposer.org/),
