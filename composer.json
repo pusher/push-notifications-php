@@ -1,5 +1,6 @@
 {
     "name": "pusher/pusher-push-notifications",
+    "license": "MIT",
     "require": {},
     "autoload": {
         "psr-4": {"Pusher\\PushNotifications\\": "src/"}
