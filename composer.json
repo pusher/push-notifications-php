@@ -1,5 +1,5 @@
 {
-    "name": "pusher/push-notifications",
+    "name": "pusher/pusher-push-notifications",
     "require": {},
     "autoload": {
         "psr-4": {"Pusher\\PushNotifications\\": "src/"}
