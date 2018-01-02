@@ -3,7 +3,6 @@ include 'src/PushNotifications.php';
 $pushNotifications = new \Pusher\PushNotifications\PushNotifications(array(
   "instanceId" => "YOUR_INSTANCE_ID_HERE",
   "secretKey" => "YOUR_SECRET_HERE",
-  "endpoint" => "https://errol-server-production.herokuapp.com",
 ));
 $publishResponse = $pushNotifications->publish(array(
   "interests" => array("donuts"),

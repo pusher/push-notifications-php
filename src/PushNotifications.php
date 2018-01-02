@@ -1,17 +1,18 @@
 <?php
 namespace Pusher\PushNotifications;
 class PushNotifications {
-  const SDK_VERSION = "0.0.1";
+  const SDK_VERSION = "0.9.1";
 
   public function __construct($options) {
-    $this->options = $options + array(
-      "endpoint" => "https://errol-server-production.herokuapp.com",
-    );
+    $this->options = $options;
     if (!array_key_exists("instanceId", $this->options)) {
       throw new \Exception("Required 'instanceId' in Pusher\PushNotifications constructor options");
     }
     if (!array_key_exists("secretKey", $this->options)) {
       throw new \Exception("Required 'secretKey' in Pusher\PushNotifications constructor options");
+    }
+    if (!array_key_exists("endpoint", $this->options)) {
+        $this->options["endpoint"] = "https://" . $options["instanceId"] . ".pushnotifications.pusher.com";
     }
   }
 
