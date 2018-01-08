@@ -1,7 +1,7 @@
 <?php
 namespace Pusher\PushNotifications;
 class PushNotifications {
-  const SDK_VERSION = "0.9.1";
+  const SDK_VERSION = "0.10.0";
 
   public function __construct($options) {
     $this->options = $options;
@@ -16,16 +16,19 @@ class PushNotifications {
     }
   }
 
-  public function publish($body_json) {
-    if (!array_key_exists("interests", $body_json)) {
-      throw new \Exception("Required 'interests' in Pusher\PushNotifications->publish options");
+  public function publish($interests, $publish_request) {
+    if (count($interests) == 0) {
+      throw new \Exception("The interests array must not be empty");
     }
+
+    $publish_request['interests'] = $interests;
+    $body_string = json_encode($publish_request);
+
     $curl_handle = curl_init();
     $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes';
     curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl_handle, CURLOPT_URL, $url);
     curl_setopt($curl_handle, CURLOPT_CUSTOMREQUEST, "POST");
-    $body_string = json_encode($body_json);
     curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $body_string);
     curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array(
       'Content-Type: application/json',

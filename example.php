@@ -4,8 +4,7 @@ $pushNotifications = new \Pusher\PushNotifications\PushNotifications(array(
   "instanceId" => "YOUR_INSTANCE_ID_HERE",
   "secretKey" => "YOUR_SECRET_HERE",
 ));
-$publishResponse = $pushNotifications->publish(array(
-  "interests" => array("donuts"),
+$publishResponse = $pushNotifications->publish(array("donuts"), array(
   "apns" => array("aps" => array(
     "alert" => "Hello!",
   )),
