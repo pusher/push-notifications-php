@@ -1,15 +1,21 @@
 <?php
 namespace Pusher\PushNotifications;
 class PushNotifications {
-  const SDK_VERSION = "0.10.0";
+  const SDK_VERSION = "0.10.1";
 
   public function __construct($options) {
     $this->options = $options;
     if (!array_key_exists("instanceId", $this->options)) {
       throw new \Exception("Required 'instanceId' in Pusher\PushNotifications constructor options");
     }
+    if ($this->options["instanceId"] == "") {
+      throw new \Exception("'instanceId' cannot be the empty string");
+    }
     if (!array_key_exists("secretKey", $this->options)) {
       throw new \Exception("Required 'secretKey' in Pusher\PushNotifications constructor options");
+    }
+    if ($this->options["secretKey"] == "") {
+      throw new \Exception("'secretKey' cannot be the empty string");
     }
     if (!array_key_exists("endpoint", $this->options)) {
         $this->options["endpoint"] = "https://" . $options["instanceId"] . ".pushnotifications.pusher.com";
