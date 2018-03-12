@@ -1,7 +1,7 @@
 <?php
 namespace Pusher\PushNotifications;
 class PushNotifications {
-  const SDK_VERSION = "0.10.1";
+  const SDK_VERSION = "0.10.2";
 
   public function __construct($options) {
     $this->options = $options;
