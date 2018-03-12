@@ -52,13 +52,15 @@ class PushNotifications {
     }
     if (400 <= $response_status || $response_status <= 500) {
       $error_body = json_decode($response_body);
-        if (
-          json_last_error() !== JSON_ERROR_NONE ||
-          !ARRAY_KEY_EXISTS('error', $error_body) &&
-          ARRAY_KEY_EXISTS('description', $error_body)
-        ) {
+      $bad_json = json_last_error() !== JSON_ERROR_NONE;
+      $bad_schema =
+        !ARRAY_KEY_EXISTS('error', $error_body) ||
+        !ARRAY_KEY_EXISTS('description', $error_body);
+
+      if ($bad_json || $bad_schema) {
         throw new \Exception('The server returned an unknown error response');
       }
+
       throw new \Exception("{$error_body->error}: {$error_body->description}");
     }
 
