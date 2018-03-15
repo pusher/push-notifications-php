@@ -50,7 +50,9 @@ class PushNotifications {
     if ($response_body === false) {
       throw new \Exception('exec_curl error: '.curl_error($curl_handle)."\n");
     }
-    if (400 <= $response_status || $response_status <= 500) {
+
+    $success = $response_status >= 200 && $response_status < 300;
+    if (!$success) {
       $error_body = json_decode($response_body);
       $bad_json = json_last_error() !== JSON_ERROR_NONE;
       $bad_schema =
