@@ -1,7 +1,7 @@
 <?php
 namespace Pusher\PushNotifications;
 class PushNotifications {
-  const SDK_VERSION = "0.10.3";
+  const SDK_VERSION = "0.10.4";
 
   public function __construct($options) {
     $this->options = $options;
@@ -51,7 +51,7 @@ class PushNotifications {
       throw new \Exception('exec_curl error: '.curl_error($curl_handle)."\n");
     }
 
-    $success = $response_status >= 200 && $response_status < 300;
+    $success = $response_status >= 200 && $response_status < 400;
     if (!$success) {
       $error_body = json_decode($response_body);
       $bad_json = json_last_error() !== JSON_ERROR_NONE;
