@@ -55,12 +55,14 @@ class PushNotifications {
     if (!$success) {
       $error_body = json_decode($response_body);
       $bad_json = json_last_error() !== JSON_ERROR_NONE;
-      $bad_schema =
-        !ARRAY_KEY_EXISTS('error', $error_body) ||
-        !ARRAY_KEY_EXISTS('description', $error_body);
+      if (is_array($error_body)) {
+        $bad_schema =
+          !ARRAY_KEY_EXISTS('error', $error_body) ||
+          !ARRAY_KEY_EXISTS('description', $error_body);
+      }
 
       if ($bad_json || $bad_schema) {
-        throw new \Exception('The server returned an unknown error response');
+        throw new \Exception('The server returned an unknown error response. double check your instanceId and secretKey');
       }
 
       throw new \Exception("{$error_body->error}: {$error_body->description}");
