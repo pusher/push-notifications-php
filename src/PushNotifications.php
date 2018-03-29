@@ -5,20 +5,39 @@ class PushNotifications {
 
   public function __construct($options) {
     $this->options = $options;
+    if (!is_array($this->options)) {
+      throw new \Exception("Options parameter must be an array");
+    }
+
     if (!array_key_exists("instanceId", $this->options)) {
       throw new \Exception("Required 'instanceId' in Pusher\PushNotifications constructor options");
+    }
+    if (!is_string($this->options["instanceId"])) {
+      throw new \Exception("'instanceId' must be a string");
     }
     if ($this->options["instanceId"] == "") {
       throw new \Exception("'instanceId' cannot be the empty string");
     }
+
     if (!array_key_exists("secretKey", $this->options)) {
       throw new \Exception("Required 'secretKey' in Pusher\PushNotifications constructor options");
+    }
+    if (!is_string($this->options["secretKey"])) {
+      throw new \Exception("'secretKey' must be a string");
     }
     if ($this->options["secretKey"] == "") {
       throw new \Exception("'secretKey' cannot be the empty string");
     }
+
     if (!array_key_exists("endpoint", $this->options)) {
         $this->options["endpoint"] = "https://" . $options["instanceId"] . ".pushnotifications.pusher.com";
+    } else {
+      if (!is_string($this->options["endpoint"])) {
+        throw new \Exception("'endpoint' must be a string");
+      }
+      if ($this->options["endpoint"] == "") {
+        throw new \Exception("'endpoint' cannot be the empty string");
+      }
     }
   }
 
@@ -55,11 +74,12 @@ class PushNotifications {
     if (!$success) {
       $error_body = json_decode($response_body);
       $bad_json = json_last_error() !== JSON_ERROR_NONE;
-      $bad_schema =
-        !ARRAY_KEY_EXISTS('error', $error_body) ||
-        !ARRAY_KEY_EXISTS('description', $error_body);
 
-      if ($bad_json || $bad_schema) {
+      if (
+        $bad_json ||
+        !ARRAY_KEY_EXISTS('error'. $error_body) ||
+        !ARRAY_KEY_EXISTS('description'. $error_body)
+      ) {
         throw new \Exception('The server returned an unknown error response');
       }
 
