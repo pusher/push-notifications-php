@@ -74,11 +74,10 @@ class PushNotifications {
     if (!$success) {
       $error_body = json_decode($response_body);
       $bad_json = json_last_error() !== JSON_ERROR_NONE;
-
       if (
         $bad_json ||
-        !ARRAY_KEY_EXISTS('error'. $error_body) ||
-        !ARRAY_KEY_EXISTS('description'. $error_body)
+        !ARRAY_KEY_EXISTS('error', $error_body) ||
+        !ARRAY_KEY_EXISTS('description', $error_body)
       ) {
         throw new \Exception('The server returned an unknown error response');
       }
