@@ -1,12 +1,31 @@
 <?php
 namespace Pusher\PushNotifications;
+
+use GuzzleHttp;
+
+/**
+ * Pusher Push Notifications client class
+ * Used to publish notifications to the Pusher Push Notifications API
+ * http://www.pusher.com/push-notifications
+ */
 class PushNotifications {
   const SDK_VERSION = "0.10.5";
+  const MAX_INTERESTS = 100;
+  const MAX_INTEREST_LENGTH = 164;
+  const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|:|[A-Z]|[a-z]|[0-9])*$/";
 
-  public function __construct($options) {
+  private $options = array();
+  private $client = null;
+
+  public function __construct($options, $client = null) {
     $this->options = $options;
     if (!is_array($this->options)) {
       throw new \Exception("Options parameter must be an array");
+    } 
+    if ($client == null) {
+      $this->client = new GuzzleHTTP\Client();
+    } else {
+      $this->client = $client;
     }
 
     if (!array_key_exists("instanceId", $this->options)) {
@@ -41,55 +60,72 @@ class PushNotifications {
     }
   }
 
-  public function publish($interests, $publish_request) {
+  public function publish($interests, $publishRequest) {
+    if (!is_array($interests)) {
+      throw new \Exception("'interests' must be an array");
+    }
     if (count($interests) == 0) {
-      throw new \Exception("The interests array must not be empty");
+      throw new \Exception("Publishes must target at least one interest");
+    }
+    if (count($interests) > PushNotifications::MAX_INTERESTS) {
+      throw new \Exception("Number of interests exceeds maximum of ${MAX_INTERESTS}");
+    }
+    if(!is_array($publishRequest)) {
+      throw new \Exception("'publishBody' must be an array");
     }
 
-    $publish_request['interests'] = $interests;
-    $body_string = json_encode($publish_request);
-
-    $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes';
-    $curl_handle = curl_init();
-
-    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($curl_handle, CURLOPT_URL, $url);
-    curl_setopt($curl_handle, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($curl_handle, CURLOPT_POSTFIELDS, $body_string);
-    curl_setopt($curl_handle, CURLOPT_HTTPHEADER, array(
-      'Content-Type: application/json',
-      'Content-Length: ' . strlen($body_string),
-      'Authorization: Bearer ' . $this->options["secretKey"],
-      'X-Pusher-Library: pusher-push-notifications-php ' . self::SDK_VERSION,
-    ));
-
-    $response_body = curl_exec($curl_handle);
-    $response_status = curl_getinfo($curl_handle, CURLINFO_HTTP_CODE);
-
-    if ($response_body === false) {
-      throw new \Exception('exec_curl error: '.curl_error($curl_handle)."\n");
-    }
-
-    $success = $response_status >= 200 && $response_status < 400;
-    if (!$success) {
-      $error_body = json_decode($response_body);
-      $bad_json = json_last_error() !== JSON_ERROR_NONE;
-      if (
-        $bad_json ||
-        !ARRAY_KEY_EXISTS('error', $error_body) ||
-        !ARRAY_KEY_EXISTS('description', $error_body)
-      ) {
-        throw new \Exception('The server returned an unknown error response');
+    foreach($interests as $interest) {
+      if (!is_string($interest)) {
+        throw new \Exception("Interest \"$interest\" is not a string");
       }
-
-      throw new \Exception("{$error_body->error}: {$error_body->description}");
+      if (strlen($interest) > PushNotifications::MAX_INTEREST_LENGTH) {
+        throw new \Exception("Interest \"$interest\" is longer than the maximum length of " . PushNotifications::MAX_INTEREST_LENGTH . " chars.");
+      }
+      if (strlen($interest) == 0) {
+        throw new \Exception("Interest names cannot be the empty string");
+      }
+      if (!preg_match(PushNotifications::INTEREST_REGEX, $interest)) {
+        throw new \Exception(implode([
+          "Interest \"$interest\" contains a forbidden character.",
+          " Allowed characters are: ASCII upper/lower-case letters,",
+          " numbers or one of _=@,.:-"
+        ]));
+      }
     }
 
-    $json_response = json_decode($response_body);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-      throw new \Exception('json_decode error: ' . json_last_error_msg());
+    $publishRequest['interests'] = $interests;
+    $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes';
+    try {
+      $response = $this->client->request(
+        'POST',
+        $url,
+        [
+          "headers" => [
+            "Authorization" => "Bearer " . $this->options["secretKey"],
+            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
+          ],
+          "json" => $publishRequest
+        ]
+      );
+    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+      $response = $e->GetResponse();
+      $parsedResponse = json_decode($response->GetBody());
+      $badJSON = $parsedResponse == null;
+      if (
+        $badJSON ||
+        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
+        !ARRAY_KEY_EXISTS('description', $parsedResponse)
+      ) {
+        throw new \Exception("An unexpected server error has occurred");
+      }
+      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
     }
 
-    return $json_response;
+    $parsedResponse = json_decode($response->GetBody());
+    if ($parsedResponse == null) {
+      throw new \Exception("An unexpected server error has occurred");
+    }
+
+    return $parsedResponse;
   }
 }
