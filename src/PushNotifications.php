@@ -68,7 +68,7 @@ class PushNotifications {
       throw new \Exception("Publishes must target at least one interest");
     }
     if (count($interests) > PushNotifications::MAX_INTERESTS) {
-      throw new \Exception("Number of interests exceeds maximum of ${MAX_INTERESTS}");
+      throw new \Exception("Number of interests exceeds maximum of {PushNotifications::MAX_INTERESTS}");
     }
     if(!is_array($publishRequest)) {
       throw new \Exception("'publishBody' must be an array");
