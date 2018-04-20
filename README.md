@@ -13,8 +13,7 @@ Check https://www.pusher.com/push-notifications for more information about this 
 $ composer require pusher/pusher-push-notifications
 ```
 
-This SDK depends on [the cURL PHP module](http://php.net/manual/en/curl.installation.php)
-and [the JSON PHP module](http://php.net/manual/en/json.installation.php).
+This SDK depends on [the JSON PHP module](http://php.net/manual/en/json.installation.php).
 
 ## Use
 
