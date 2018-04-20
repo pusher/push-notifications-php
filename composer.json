@@ -1,6 +1,6 @@
 {
     "name": "pusher/pusher-push-notifications",
-    "version": "0.10.5",
+    "version": "0.10.6",
     "license": "MIT",
     "require": {
         "php": ">=5.6.0",

@@ -116,7 +116,7 @@ final class PushNotificationsTest extends TestCase {
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedContentType = "application/json";
     $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
-    $expectedSDK = "pusher-push-notifications-php 0.10.5";
+    $expectedSDK = "pusher-push-notifications-php 0.10.6";
 
     $expectedBody = [
       "interests" => ["donuts"],
