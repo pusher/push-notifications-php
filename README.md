@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/pusher/push-notifications-php.svg?branch=master)](https://travis-ci.org/pusher/push-notifications-php)
 # PHP SDK for Pusher Push Notifications
 
 PHP server library for publishing notifications through Pusher.
