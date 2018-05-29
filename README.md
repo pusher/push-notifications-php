@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/pusher/push-notifications-php.svg?branch=master)](https://travis-ci.org/pusher/push-notifications-php)
-# PHP SDK for Pusher Push Notifications
+# PHP SDK for Pusher Beams
 
-PHP server library for publishing notifications through Pusher.
+PHP server library for publishing notifications through Pusher Beams.
 
-Check https://www.pusher.com/push-notifications for more information about this service.
+Check https://docs.pusher.com/beams/reference/server-sdk-php for more information.
 
 ## Installation
 
