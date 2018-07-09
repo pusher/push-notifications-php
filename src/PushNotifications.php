@@ -12,7 +12,7 @@ class PushNotifications {
   const SDK_VERSION = "0.10.6";
   const MAX_INTERESTS = 100;
   const MAX_INTEREST_LENGTH = 164;
-  const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|:|[A-Z]|[a-z]|[0-9])+$/";
+  const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
 
   private $options = array();
   private $client = null;
