@@ -18,5 +18,23 @@ This SDK depends on [the JSON PHP module](http://php.net/manual/en/json.installa
 
 ## Use
 
-For an example of use,
-see [example.php](https://github.com/pusher/push-notifications-php/blob/master/example.php).
+```php
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+$pushNotifications = new \Pusher\PushNotifications\PushNotifications(array(
+  "instanceId" => "YOUR_INSTANCE_ID_HERE",
+  "secretKey" => "YOUR_SECRET_HERE",
+));
+$publishResponse = $pushNotifications->publish(array("donuts"), array(
+  "apns" => array("aps" => array(
+    "alert" => "Hello!",
+  )),
+  "fcm" => array("notification" => array(
+    "title" => "Hello!",
+    "body" => "Hello, world!",
+  )),
+));
+
+echo("Published with Publish ID: " . $publishResponse->publishId . "\n");
+```
