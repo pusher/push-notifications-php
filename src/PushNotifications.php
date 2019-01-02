@@ -201,6 +201,16 @@ class PushNotifications {
   }
 
   public function deleteUser($userId) {
+    if (!is_string($userId)) {
+      throw new \Exception("User id must be a string");
+    }
+    if (strlen($userId) == 0) {
+      throw new \Exception("User id cannot be the empty string");
+    }
+    if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+      throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
+    }
+
     $url = $this->options["endpoint"] . '/user_api/v1/instances/' . $this->options["instanceId"] . '/users/' . $userId;
     try {
       $response = $this->client->request(
@@ -234,6 +244,9 @@ class PushNotifications {
     }
     if (strlen($userId) == 0) {
       throw new \Exception("User id cannot be the empty string");
+    }
+    if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+      throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
     }
 
     $instanceId = $this->options["instanceId"];
