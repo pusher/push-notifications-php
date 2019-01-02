@@ -431,6 +431,59 @@ final class UsersTest extends TestCase {
     );
   }
 
+  public function testDeleteUserShouldMakeRequestIfValid() {
+    // Record history
+    $container = [];
+    $history = GuzzleHttp\Middleware::history($container);
+
+    // Create mock
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=200,
+        $headers=[],
+        $body=''
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $handler->push($history);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->deleteUser("user-0001");
+
+    $expectedMethod = 'DELETE';
+    $expectedUrl = implode([
+      'https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com/',
+      'user_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/users/user-0001'
+    ]);
+
+    $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
+    $expectedContentType = "application/json";
+    $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
+    $expectedSDK = "pusher-push-notifications-php 1.0.0";
+
+    $request = $container[0]["request"];
+    $this->assertNotNull($request, "Request should not be null");
+
+    $method = $request->GetMethod();
+    $url = (string) $request->GetUri();
+    $headers = $request->GetHeaders();
+
+    $this->assertEquals($expectedMethod, $method, "Method should be DELETE");
+    $this->assertEquals($expectedUrl, $url);
+
+    $this->assertEquals($expectedHost, $headers["Host"][0],
+      "Host should be <instanceId>.pushnotifications.pusher.com");
+    $this->assertEquals($expectedAuth, $headers["Authorization"][0],
+      "Auth header should be bearer token");
+    $this->assertEquals($expectedSDK, $headers["X-Pusher-Library"][0],
+      "SDK header should be pusher-push-notifications-php <version>");
+  }
+
   public function testAuthenticateUserShouldReturnToken() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
