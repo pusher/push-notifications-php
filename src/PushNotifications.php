@@ -213,7 +213,7 @@ class PushNotifications {
       '$instanceId' => $this->options["instanceId"],
       '$userId' => $userId
     ];
-    $this->makeRequest("DELETE", $path, $pathParams, $publishRequest);
+    $this->makeRequest("DELETE", $path, $pathParams);
   }
 
   public function authenticateUser($userId) {
