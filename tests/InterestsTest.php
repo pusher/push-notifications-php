@@ -2,7 +2,99 @@
 use PHPUnit\Framework\TestCase;
 
 final class InterestsTest extends TestCase {
-  public function testShouldMakeRequestIfValid() {
+  protected function setUp() {
+    PHPUnit_Framework_Error_Deprecated::$enabled = false;
+  }
+
+  public function testPublishToInterestsShouldMakeRequestIfValid() {
+    // Record history
+    $container = [];
+    $history = GuzzleHttp\Middleware::history($container);
+
+    // Create mock
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=200,
+        $headers=["Content-Type", "application/json"],
+        $body='{"publishId": "pub-1234"}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $handler->push($history);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->publishToInterests(
+      ["donuts"],
+      [
+        "apns" => [
+          "aps" => [
+            "alert" => "Hello!"
+          ]
+        ],
+        "fcm" => [
+          "notification" => [
+            "title" => "Hello!",
+            "body" => "Hello, world!"
+          ]
+        ]
+      ]
+    );
+
+    $expectedMethod = 'POST';
+    $expectedUrl = implode([
+      'https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com/',
+      'publish_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/publishes'
+    ]);
+
+    $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
+    $expectedContentType = "application/json";
+    $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
+    $expectedSDK = "pusher-push-notifications-php 1.0.0";
+
+    $expectedBody = [
+      "interests" => ["donuts"],
+      "apns" => [
+        "aps" => [
+          "alert" => "Hello!"
+        ]
+      ],
+      "fcm" => [
+        "notification" => [
+          "title" => "Hello!",
+          "body" => "Hello, world!"
+        ]
+      ]
+    ];
+    $expectedPublishId = "pub-1234";
+
+    $request = $container[0]["request"];
+    $method = $request->GetMethod();
+    $url = (string) $request->GetUri();
+    $headers = $request->GetHeaders();
+    $body = json_decode((string) $request->GetBody(), true);
+
+    $this->assertEquals($expectedMethod, $method, "Method should be POST");
+    $this->assertEquals($expectedUrl, $url);
+
+    $this->assertEquals($expectedHost, $headers["Host"][0],
+      "Host should be <instanceId>.pushnotifications.pusher.com");
+    $this->assertEquals($expectedContentType, $headers["Content-Type"][0],
+      "Content type should be application/json");
+    $this->assertEquals($expectedAuth, $headers["Authorization"][0],
+      "Auth header should be bearer token");
+    $this->assertEquals($expectedSDK, $headers["X-Pusher-Library"][0],
+      "SDK header should be pusher-push-notifications-php <version>");
+
+    $this->assertEquals($expectedBody, $body);
+    $this->assertEquals($expectedPublishId, $result->publishId);
+  }
+
+  public function testPublishShouldAliasPublishToInterests() {
     // Record history
     $container = [];
     $history = GuzzleHttp\Middleware::history($container);
@@ -90,14 +182,14 @@ final class InterestsTest extends TestCase {
     $this->assertEquals($expectedPublishId, $result->publishId);
   }
 
-  public function testShouldErrorIfInterestsNotArray() {
+  public function testPublishToInterestsShouldErrorIfInterestsNotArray() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("'interests' must be an array");
     $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       null,
       array(
         "apns" => array("aps" => array(
@@ -111,14 +203,14 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfNoInterests() {
+  public function testPublishToInterestsShouldErrorIfNoInterests() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("Publishes must target at least one interest");
     $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       [],
       array(
         "apns" => array("aps" => array(
@@ -132,7 +224,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfTooManyInterests() {
+  public function testPublishToInterestsShouldErrorIfTooManyInterests() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("Number of interests exceeds maximum");
 
@@ -145,7 +237,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       $interests,
       array(
         "apns" => array("aps" => array(
@@ -159,14 +251,14 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfInterestNotString() {
+  public function testPublishToInterestsShouldErrorIfInterestNotString() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("not a string");
     $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       [null],
       array(
         "apns" => array("aps" => array(
@@ -180,7 +272,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfInterestTooLong() {
+  public function testPublishToInterestsShouldErrorIfInterestTooLong() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("longer than the maximum");
 
@@ -194,7 +286,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       [$interest],
       array(
         "apns" => array("aps" => array(
@@ -208,7 +300,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfInterestContainsForbiddenChar() {
+  public function testPublishToInterestsShouldErrorIfInterestContainsForbiddenChar() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("contains a forbidden character");
 
@@ -218,7 +310,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       [$interest],
       array(
         "apns" => array("aps" => array(
@@ -232,7 +324,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfInterestIsEmptyString() {
+  public function testPublishToInterestsShouldErrorIfInterestIsEmptyString() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("cannot be the empty string");
 
@@ -242,7 +334,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       [$interest],
       array(
         "apns" => array("aps" => array(
@@ -256,20 +348,20 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfPublishBodyNotArray() {
+  public function testPublishToInterestsShouldErrorIfPublishBodyNotArray() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("'publishBody' must be an array");
     $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ));
-    $pushNotifications->publish(
+    $pushNotifications->publishToInterests(
       ["donuts"],
       null
     );
   }
 
-  public function testShouldErrorIfBadJsonReturned() {
+  public function testPublishToInterestsShouldErrorIfBadJsonReturned() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -288,7 +380,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ), $client);
-    $result = $pushNotifications->publish(
+    $result = $pushNotifications->publishToInterests(
       ["donuts"],
       [
         "apns" => [
@@ -306,7 +398,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIf4xxErrorReturned() {
+  public function testPublishToInterestsShouldErrorIf4xxErrorReturned() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("error_type: error_description");
 
@@ -325,7 +417,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ), $client);
-    $result = $pushNotifications->publish(
+    $result = $pushNotifications->publishToInterests(
       ["donuts"],
       [
         "apns" => [
@@ -343,7 +435,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIf5xxErrorReturned() {
+  public function testPublishToInterestsShouldErrorIf5xxErrorReturned() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("error_type: error_description");
 
@@ -362,7 +454,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ), $client);
-    $result = $pushNotifications->publish(
+    $result = $pushNotifications->publishToInterests(
       ["donuts"],
       [
         "apns" => [
@@ -380,7 +472,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfBadErrorJson() {
+  public function testPublishToInterestsShouldErrorIfBadErrorJson() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -399,7 +491,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ), $client);
-    $result = $pushNotifications->publish(
+    $result = $pushNotifications->publishToInterests(
       ["donuts"],
       [
         "apns" => [
@@ -417,7 +509,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfBadErrorSchema() {
+  public function testPublishToInterestsShouldErrorIfBadErrorSchema() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -436,7 +528,7 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ), $client);
-    $result = $pushNotifications->publish(
+    $result = $pushNotifications->publishToInterests(
       ["donuts"],
       [
         "apns" => [

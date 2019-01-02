@@ -65,6 +65,11 @@ class PushNotifications {
   }
 
   public function publish($interests, $publishRequest) {
+    trigger_error('publish method is deprecated. Please use publishToInterests instead.', E_USER_DEPRECATED);
+    return $this->publishToInterests($interests, $publishRequest);
+  }
+
+  public function publishToInterests($interests, $publishRequest) {
     if (!is_array($interests)) {
       throw new \Exception("'interests' must be an array");
     }
