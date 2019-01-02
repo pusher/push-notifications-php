@@ -48,7 +48,7 @@ final class InterestsTest extends TestCase {
     $expectedMethod = 'POST';
     $expectedUrl = implode([
       'https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com/',
-      'publish_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/publishes'
+      'publish_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/publishes/interests'
     ]);
 
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
@@ -136,7 +136,7 @@ final class InterestsTest extends TestCase {
     $expectedMethod = 'POST';
     $expectedUrl = implode([
       'https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com/',
-      'publish_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/publishes'
+      'publish_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/publishes/interests'
     ]);
 
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";

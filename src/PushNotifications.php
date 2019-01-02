@@ -144,7 +144,7 @@ class PushNotifications {
     }
 
     $publishRequest['interests'] = $interests;
-    $path = '/publish_api/v1/instances/$instanceId/publishes';
+    $path = '/publish_api/v1/instances/$instanceId/publishes/interests';
     $pathParams = [
       '$instanceId' => $this->options["instanceId"]
     ];
