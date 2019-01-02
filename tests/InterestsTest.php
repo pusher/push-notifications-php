@@ -269,19 +269,6 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfResponseNotJSON() {
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage("'publishBody' must be an array");
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
-      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
-      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
-    $pushNotifications->publish(
-      ["donuts"],
-      null
-    );
-  }
-
   public function testShouldErrorIfBadJsonReturned() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
@@ -393,7 +380,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfErrorBadJSON() {
+  public function testShouldErrorIfBadErrorJson() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -430,7 +417,7 @@ final class InterestsTest extends TestCase {
     );
   }
 
-  public function testShouldErrorIfErrorBadSchema() {
+  public function testShouldErrorIfBadErrorSchema() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 

@@ -91,6 +91,346 @@ final class UsersTest extends TestCase {
     $this->assertEquals($expectedPublishId, $result->publishId);
   }
 
+  public function testPublishToUsersShouldErrorIfUserIdsNotArray() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("'userIds' must be an array");
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      null,
+      array(
+        "apns" => array("aps" => array(
+          "alert" => "Hello!",
+        )),
+        "fcm" => array("notification" => array(
+          "title" => "Hello!",
+          "body" => "Hello, world!",
+        )),
+      )
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfNoUserIds() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("Publishes must target at least one user");
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      [],
+      array(
+        "apns" => array("aps" => array(
+          "alert" => "Hello!",
+        )),
+        "fcm" => array("notification" => array(
+          "title" => "Hello!",
+          "body" => "Hello, world!",
+        )),
+      )
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfTooManyUserIds() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("Number of user ids exceeds maximum");
+
+    $userIds = [];
+    for($i = 0; $i < 1001; $i++) {
+      array_push($userIds, "user-" . $i);
+    }
+
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      $userIds,
+      array(
+        "apns" => array("aps" => array(
+          "alert" => "Hello!",
+        )),
+        "fcm" => array("notification" => array(
+          "title" => "Hello!",
+          "body" => "Hello, world!",
+        )),
+      )
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfUserIdNotString() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("not a string");
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      [null],
+      array(
+        "apns" => array("aps" => array(
+          "alert" => "Hello!",
+        )),
+        "fcm" => array("notification" => array(
+          "title" => "Hello!",
+          "body" => "Hello, world!",
+        )),
+      )
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfUserIdTooLong() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("longer than the maximum");
+
+    $userIdLength = 165;
+    $userId = "";
+    for($i = 0; $i < $userIdLength; $i++) {
+      $userId = $userId . 'A';
+    }
+
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      [$userId],
+      array(
+        "apns" => array("aps" => array(
+          "alert" => "Hello!",
+        )),
+        "fcm" => array("notification" => array(
+          "title" => "Hello!",
+          "body" => "Hello, world!",
+        )),
+      )
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfUserIdIsEmptyString() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("cannot be the empty string");
+
+    $userId = "";
+
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      [$userId],
+      array(
+        "apns" => array("aps" => array(
+          "alert" => "Hello!",
+        )),
+        "fcm" => array("notification" => array(
+          "title" => "Hello!",
+          "body" => "Hello, world!",
+        )),
+      )
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfPublishBodyNotArray() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("'publishBody' must be an array");
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ));
+    $pushNotifications->publishToUsers(
+      ["user-0001"],
+      null
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfBadJsonReturned() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("unexpected server error");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=200,
+        $headers=["Content-Type", "application/json"],
+        $body='<notjson></notjson>'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->publishToUsers(
+      ["user-0001"],
+      [
+        "apns" => [
+          "aps" => [
+            "alert" => "Hello!"
+          ]
+        ],
+        "fcm" => [
+          "notification" => [
+            "title" => "Hello!",
+            "body" => "Hello, world!"
+          ]
+        ]
+      ]
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIf4xxErrorReturned() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("error_type: error_description");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=400,
+        $headers=["Content-Type", "application/json"],
+        $body='{"error": "error_type", "description": "error_description"}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->publishToUsers(
+      ["user-0001"],
+      [
+        "apns" => [
+          "aps" => [
+            "alert" => "Hello!"
+          ]
+        ],
+        "fcm" => [
+          "notification" => [
+            "title" => "Hello!",
+            "body" => "Hello, world!"
+          ]
+        ]
+      ]
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIf5xxErrorReturned() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("error_type: error_description");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=500,
+        $headers=["Content-Type", "application/json"],
+        $body='{"error": "error_type", "description": "error_description"}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->publishToUsers(
+      ["user-0001"],
+      [
+        "apns" => [
+          "aps" => [
+            "alert" => "Hello!"
+          ]
+        ],
+        "fcm" => [
+          "notification" => [
+            "title" => "Hello!",
+            "body" => "Hello, world!"
+          ]
+        ]
+      ]
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfBadErrorJson() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("unexpected server error");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=400,
+        $headers=["Content-Type", "application/json"],
+        $body='<notjson></notjson>'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->publishToUsers(
+      ["user-0001"],
+      [
+        "apns" => [
+          "aps" => [
+            "alert" => "Hello!"
+          ]
+        ],
+        "fcm" => [
+          "notification" => [
+            "title" => "Hello!",
+            "body" => "Hello, world!"
+          ]
+        ]
+      ]
+    );
+  }
+
+  public function testPublishToUsersShouldErrorIfBadErrorSchema() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("unexpected server error");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=400,
+        $headers=["Content-Type", "application/json"],
+        $body='{"notAnError": true}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->publishToUsers(
+      ["user-0001"],
+      [
+        "apns" => [
+          "aps" => [
+            "alert" => "Hello!"
+          ]
+        ],
+        "fcm" => [
+          "notification" => [
+            "title" => "Hello!",
+            "body" => "Hello, world!"
+          ]
+        ]
+      ]
+    );
+  }
+
   public function testAuthenticateUserShouldReturnToken() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";

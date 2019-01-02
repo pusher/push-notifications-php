@@ -14,6 +14,8 @@ class PushNotifications {
   const MAX_INTERESTS = 100;
   const MAX_INTEREST_LENGTH = 164;
   const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
+  const MAX_USERS = 1000;
+  const MAX_USER_ID_LENGTH = 164;
   const AUTH_TOKEN_DURATION = 24 * 60 * 60;
 
   private $options = array();
@@ -132,6 +134,31 @@ class PushNotifications {
   }
 
   public function publishToUsers($userIds, $publishRequest) {
+    if (!is_array($userIds)) {
+      throw new \Exception("'userIds' must be an array");
+    }
+    if (count($userIds) == 0) {
+      throw new \Exception("Publishes must target at least one user");
+    }
+    if (count($userIds) > PushNotifications::MAX_USERS) {
+      throw new \Exception("Number of user ids exceeds maximum of " . PushNotifications::MAX_USERS);
+    }
+    if(!is_array($publishRequest)) {
+      throw new \Exception("'publishBody' must be an array");
+    }
+
+    foreach($userIds as $userId) {
+      if (!is_string($userId)) {
+        throw new \Exception("User id \"$userId\" is not a string");
+      }
+      if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+        throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
+      }
+      if (strlen($userId) == 0) {
+        throw new \Exception("User ids cannot be the empty string");
+      }
+    }
+
     $publishRequest['users'] = $userIds;
     $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes/users';
     try {
