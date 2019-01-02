@@ -131,6 +131,43 @@ class PushNotifications {
     return $parsedResponse;
   }
 
+  public function publishToUsers($userIds, $publishRequest) {
+    $publishRequest['users'] = $userIds;
+    $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes/users';
+    try {
+      $response = $this->client->request(
+        'POST',
+        $url,
+        [
+          "headers" => [
+            "Authorization" => "Bearer " . $this->options["secretKey"],
+            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
+          ],
+          "json" => $publishRequest
+        ]
+      );
+    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+      $response = $e->GetResponse();
+      $parsedResponse = json_decode($response->GetBody());
+      $badJSON = $parsedResponse == null;
+      if (
+        $badJSON ||
+        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
+        !ARRAY_KEY_EXISTS('description', $parsedResponse)
+      ) {
+        throw new \Exception("An unexpected server error has occurred");
+      }
+      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
+    }
+
+    $parsedResponse = json_decode($response->GetBody());
+    if ($parsedResponse == null) {
+      throw new \Exception("An unexpected server error has occurred");
+    }
+
+    return $parsedResponse;
+  }
+
   public function authenticateUser($userId) {
     if (!is_string($userId)) {
       throw new \Exception("User id must be a string");
