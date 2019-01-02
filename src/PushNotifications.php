@@ -1,6 +1,7 @@
 <?php
 namespace Pusher\PushNotifications;
 
+use Firebase\JWT\JWT;
 use GuzzleHttp;
 
 /**
@@ -13,6 +14,7 @@ class PushNotifications {
   const MAX_INTERESTS = 100;
   const MAX_INTEREST_LENGTH = 164;
   const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
+  const AUTH_TOKEN_DURATION = 24 * 60 * 60;
 
   private $options = array();
   private $client = null;
@@ -127,5 +129,21 @@ class PushNotifications {
     }
 
     return $parsedResponse;
+  }
+
+  public function authenticateUser($userId) {
+    $instanceId = $this->options["instanceId"];
+    $secretKey = $this->options["secretKey"];
+
+    $issuer = "https://$instanceId.pushnotifications.pusher.com";
+    $claims = [
+      "iss" => $issuer,
+      "sub" => $userId,
+      "exp" => time() + PushNotifications::AUTH_TOKEN_DURATION
+    ];
+
+    $token = JWT::encode($claims, $secretKey);
+
+    return $token;
   }
 }
