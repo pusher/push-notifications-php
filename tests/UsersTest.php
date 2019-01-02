@@ -27,4 +27,34 @@ final class UsersTest extends TestCase {
 
     $this->assertGreaterThan($now, $expiry);
   }
+
+  public function testAuthenticateUserShouldErrorIfUserIdNotAString() {
+    $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
+    $secretKey = "EIJ2EESAH8DUUMAI8EE";
+    $userId = false;
+
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => $instanceId,
+      "secretKey" => $secretKey,
+    ));
+
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("User id must be a string");
+    $token = $pushNotifications->authenticateUser($userId);
+  }
+
+  public function testAuthenticateUserShouldErrorIfUserIdEmpty() {
+    $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
+    $secretKey = "EIJ2EESAH8DUUMAI8EE";
+    $userId = "";
+
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => $instanceId,
+      "secretKey" => $secretKey,
+    ));
+
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("User id cannot be the empty string");
+    $token = $pushNotifications->authenticateUser($userId);
+  }
 }

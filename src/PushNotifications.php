@@ -132,6 +132,13 @@ class PushNotifications {
   }
 
   public function authenticateUser($userId) {
+    if (!is_string($userId)) {
+      throw new \Exception("User id must be a string");
+    }
+    if (strlen($userId) == 0) {
+      throw new \Exception("User id cannot be the empty string");
+    }
+
     $instanceId = $this->options["instanceId"];
     $secretKey = $this->options["secretKey"];
 
