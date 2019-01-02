@@ -64,6 +64,47 @@ class PushNotifications {
     }
   }
 
+  private function makeRequest($method, $path, $pathParams, $body = null) {
+    $escapedPathParams = [];
+    foreach($pathParams as $k => $v) {
+      $escapedPathParams[$k] = urlencode($v);
+    }
+
+    $endpoint = $this->options["endpoint"];
+    $interpolatedPath = strtr($path, $escapedPathParams);
+    $url = $endpoint . $interpolatedPath;
+
+    try {
+      $response = $this->client->request(
+        $method,
+        $url,
+        [
+          "headers" => [
+            "Authorization" => "Bearer " . $this->options["secretKey"],
+            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
+          ],
+          "json" => $body
+        ]
+      );
+    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+      $response = $e->GetResponse();
+      $parsedResponse = json_decode($response->GetBody());
+      $badJSON = $parsedResponse == null;
+      if (
+        $badJSON ||
+        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
+        !ARRAY_KEY_EXISTS('description', $parsedResponse)
+      ) {
+        throw new \Exception("An unexpected server error has occurred");
+      }
+      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
+    }
+
+    $parsedResponse = json_decode($response->GetBody());
+
+    return $parsedResponse;
+  }
+
   public function publish($interests, $publishRequest) {
     trigger_error('publish method is deprecated. Please use publishToInterests instead.', E_USER_DEPRECATED);
     return $this->publishToInterests($interests, $publishRequest);
@@ -103,39 +144,17 @@ class PushNotifications {
     }
 
     $publishRequest['interests'] = $interests;
-    $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes';
-    try {
-      $response = $this->client->request(
-        'POST',
-        $url,
-        [
-          "headers" => [
-            "Authorization" => "Bearer " . $this->options["secretKey"],
-            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
-          ],
-          "json" => $publishRequest
-        ]
-      );
-    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-      $response = $e->GetResponse();
-      $parsedResponse = json_decode($response->GetBody());
-      $badJSON = $parsedResponse == null;
-      if (
-        $badJSON ||
-        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
-        !ARRAY_KEY_EXISTS('description', $parsedResponse)
-      ) {
-        throw new \Exception("An unexpected server error has occurred");
-      }
-      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
-    }
+    $path = '/publish_api/v1/instances/$instanceId/publishes';
+    $pathParams = [
+      '$instanceId' => $this->options["instanceId"]
+    ];
+    $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
-    $parsedResponse = json_decode($response->GetBody());
-    if ($parsedResponse == null) {
+    if ($response == null) {
       throw new \Exception("An unexpected server error has occurred");
     }
 
-    return $parsedResponse;
+    return $response;
   }
 
   public function publishToUsers($userIds, $publishRequest) {
@@ -165,39 +184,17 @@ class PushNotifications {
     }
 
     $publishRequest['users'] = $userIds;
-    $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes/users';
-    try {
-      $response = $this->client->request(
-        'POST',
-        $url,
-        [
-          "headers" => [
-            "Authorization" => "Bearer " . $this->options["secretKey"],
-            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
-          ],
-          "json" => $publishRequest
-        ]
-      );
-    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-      $response = $e->GetResponse();
-      $parsedResponse = json_decode($response->GetBody());
-      $badJSON = $parsedResponse == null;
-      if (
-        $badJSON ||
-        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
-        !ARRAY_KEY_EXISTS('description', $parsedResponse)
-      ) {
-        throw new \Exception("An unexpected server error has occurred");
-      }
-      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
-    }
+    $path = '/publish_api/v1/instances/$instanceId/publishes/users';
+    $pathParams = [
+      '$instanceId' => $this->options["instanceId"]
+    ];
+    $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
-    $parsedResponse = json_decode($response->GetBody());
-    if ($parsedResponse == null) {
+    if ($response == null) {
       throw new \Exception("An unexpected server error has occurred");
     }
 
-    return $parsedResponse;
+    return $response;
   }
 
   public function deleteUser($userId) {
@@ -211,31 +208,12 @@ class PushNotifications {
       throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
     }
 
-    $url = $this->options["endpoint"] . '/user_api/v1/instances/' . $this->options["instanceId"] . '/users/' . $userId;
-    try {
-      $response = $this->client->request(
-        'DELETE',
-        $url,
-        [
-          "headers" => [
-            "Authorization" => "Bearer " . $this->options["secretKey"],
-            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
-          ]
-        ]
-      );
-    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-      $response = $e->GetResponse();
-      $parsedResponse = json_decode($response->GetBody());
-      $badJSON = $parsedResponse == null;
-      if (
-        $badJSON ||
-        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
-        !ARRAY_KEY_EXISTS('description', $parsedResponse)
-      ) {
-        throw new \Exception("An unexpected server error has occurred");
-      }
-      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
-    }
+    $path = '/user_api/v1/instances/$instanceId/users/$userId';
+    $pathParams = [
+      '$instanceId' => $this->options["instanceId"],
+      '$userId' => $userId
+    ];
+    $this->makeRequest("DELETE", $path, $pathParams, $publishRequest);
   }
 
   public function authenticateUser($userId) {
