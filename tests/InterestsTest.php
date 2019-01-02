@@ -2,10 +2,6 @@
 use PHPUnit\Framework\TestCase;
 
 final class InterestsTest extends TestCase {
-  protected function setUp() {
-    PHPUnit_Framework_Error_Deprecated::$enabled = false;
-  }
-
   public function testPublishToInterestsShouldMakeRequestIfValid() {
     // Record history
     $container = [];
@@ -116,6 +112,8 @@ final class InterestsTest extends TestCase {
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
     ), $client);
+
+    $this->expectException(PHPUnit_Framework_Error_Deprecated::class);
     $result = $pushNotifications->publish(
       ["donuts"],
       [
