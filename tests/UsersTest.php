@@ -534,6 +534,113 @@ final class UsersTest extends TestCase {
     $token = $pushNotifications->deleteUser($userId);
   }
 
+  public function testDeleteUserShouldNotErrorIfBadJsonReturned() {
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=200,
+        $headers=[],
+        $body='<notjson></notjson>'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->deleteUser("user-0001");
+  }
+
+  public function testDeleteUserShouldErrorIf4xxErrorReturned() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("error_type: error_description");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=400,
+        $headers=["Content-Type", "application/json"],
+        $body='{"error": "error_type", "description": "error_description"}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->deleteUser("user-0001");
+  }
+
+  public function testDeleteUserShouldErrorIf5xxErrorReturned() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("error_type: error_description");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=500,
+        $headers=["Content-Type", "application/json"],
+        $body='{"error": "error_type", "description": "error_description"}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->deleteUser("user-0001");
+  }
+
+  public function testDeleteUserShouldErrorIfBadErrorJson() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("unexpected server error");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=400,
+        $headers=["Content-Type", "application/json"],
+        $body='<notjson></notjson>'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->deleteUser("user-0001");
+  }
+
+  public function testDeleteUserShouldErrorIfBadErrorSchema() {
+    $this->expectException(Exception::class);
+    $this->expectExceptionMessage("unexpected server error");
+
+    $mock = new GuzzleHttp\Handler\MockHandler([
+      new GuzzleHttp\Psr7\Response(
+        $status=400,
+        $headers=["Content-Type", "application/json"],
+        $body='{"notAnError": true}'
+      )
+    ]);
+    $handler = GuzzleHttp\HandlerStack::create($mock);
+    $client = new GuzzleHttp\Client(['handler' => $handler]);
+
+    // Make request
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+      "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+      "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+    ), $client);
+    $result = $pushNotifications->deleteUser("user-0001");
+  }
+
   public function testAuthenticateUserShouldReturnToken() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
