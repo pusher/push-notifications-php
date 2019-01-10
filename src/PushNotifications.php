@@ -16,7 +16,7 @@ class PushNotifications {
   const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
   const MAX_USERS = 1000;
   const MAX_USER_ID_LENGTH = 164;
-  const AUTH_TOKEN_DURATION = 24 * 60 * 60;
+  const AUTH_TOKEN_DURATION_SECS = 24 * 60 * 60;
 
   private $options = array();
   private $client = null;
@@ -66,7 +66,7 @@ class PushNotifications {
 
   private function makeRequest($method, $path, $pathParams, $body = null) {
     $escapedPathParams = [];
-    foreach($pathParams as $k => $v) {
+    foreach ($pathParams as $k => $v) {
       $escapedPathParams[$k] = urlencode($v);
     }
 
@@ -144,9 +144,9 @@ class PushNotifications {
     }
 
     $publishRequest['interests'] = $interests;
-    $path = '/publish_api/v1/instances/$instanceId/publishes/interests';
+    $path = '/publish_api/v1/instances/INSTANCE_ID/publishes/interests';
     $pathParams = [
-      '$instanceId' => $this->options["instanceId"]
+      'INSTANCE_ID' => $this->options["instanceId"]
     ];
     $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
@@ -167,7 +167,7 @@ class PushNotifications {
     if (count($userIds) > PushNotifications::MAX_USERS) {
       throw new \Exception("Number of user ids exceeds maximum of " . PushNotifications::MAX_USERS);
     }
-    if(!is_array($publishRequest)) {
+    if (!is_array($publishRequest)) {
       throw new \Exception("'publishBody' must be an array");
     }
 
@@ -184,9 +184,9 @@ class PushNotifications {
     }
 
     $publishRequest['users'] = $userIds;
-    $path = '/publish_api/v1/instances/$instanceId/publishes/users';
+    $path = '/publish_api/v1/instances/INSTANCE_ID/publishes/users';
     $pathParams = [
-      '$instanceId' => $this->options["instanceId"]
+      'INSTANCE_ID' => $this->options["instanceId"]
     ];
     $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
@@ -208,10 +208,10 @@ class PushNotifications {
       throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
     }
 
-    $path = '/user_api/v1/instances/$instanceId/users/$userId';
+    $path = '/user_api/v1/instances/INSTANCE_ID/users/USER_ID';
     $pathParams = [
-      '$instanceId' => $this->options["instanceId"],
-      '$userId' => $userId
+      'INSTANCE_ID' => $this->options["instanceId"],
+      'USER_ID' => $userId
     ];
     $this->makeRequest("DELETE", $path, $pathParams);
   }
@@ -234,7 +234,7 @@ class PushNotifications {
     $claims = [
       "iss" => $issuer,
       "sub" => $userId,
-      "exp" => time() + PushNotifications::AUTH_TOKEN_DURATION
+      "exp" => time() + PushNotifications::AUTH_TOKEN_DURATION_SECS
     ];
 
     $token = JWT::encode($claims, $secretKey);
