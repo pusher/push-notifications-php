@@ -458,7 +458,7 @@ final class UsersTest extends TestCase {
     $expectedMethod = 'DELETE';
     $expectedUrl = implode([
       'https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com/',
-      'user_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/users/user-0001'
+      'customer_api/v1/instances/a11aec92-146a-4708-9a62-8c61f46a82ad/users/user-0001'
     ]);
 
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";

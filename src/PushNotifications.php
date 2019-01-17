@@ -208,7 +208,7 @@ class PushNotifications {
       throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
     }
 
-    $path = '/user_api/v1/instances/INSTANCE_ID/users/USER_ID';
+    $path = '/customer_api/v1/instances/INSTANCE_ID/users/USER_ID';
     $pathParams = [
       'INSTANCE_ID' => $this->options["instanceId"],
       'USER_ID' => $userId
