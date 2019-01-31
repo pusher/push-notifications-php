@@ -651,7 +651,7 @@ final class UsersTest extends TestCase {
       "secretKey" => $secretKey,
     ));
 
-    $token = $pushNotifications->authenticateUser($userId);
+    $token = $pushNotifications->generateToken($userId);
     $decodedToken = JWT::decode($token, $secretKey, array("HS256"));
 
     $expectedIssuer = "https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
@@ -678,7 +678,7 @@ final class UsersTest extends TestCase {
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("User id must be a string");
-    $token = $pushNotifications->authenticateUser($userId);
+    $token = $pushNotifications->generateToken($userId);
   }
 
   public function testAuthenticateUserShouldErrorIfUserIdEmpty() {
@@ -693,7 +693,7 @@ final class UsersTest extends TestCase {
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("User id cannot be the empty string");
-    $token = $pushNotifications->authenticateUser($userId);
+    $token = $pushNotifications->generateToken($userId);
   }
 
   public function testAuthenticateUserShouldErrorIfUserTooLong() {
@@ -713,6 +713,6 @@ final class UsersTest extends TestCase {
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("longer than the maximum");
-    $token = $pushNotifications->authenticateUser($userId);
+    $token = $pushNotifications->generateToken($userId);
   }
 }

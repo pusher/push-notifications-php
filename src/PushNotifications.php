@@ -216,7 +216,7 @@ class PushNotifications {
     $this->makeRequest("DELETE", $path, $pathParams);
   }
 
-  public function authenticateUser($userId) {
+  public function generateToken($userId) {
     if (!is_string($userId)) {
       throw new \Exception("User id must be a string");
     }
