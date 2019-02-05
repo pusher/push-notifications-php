@@ -239,6 +239,8 @@ class PushNotifications {
 
     $token = JWT::encode($claims, $secretKey);
 
-    return $token;
+    return [
+      "token" => $token
+    ];
   }
 }

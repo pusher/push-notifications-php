@@ -641,7 +641,7 @@ final class UsersTest extends TestCase {
     $result = $pushNotifications->deleteUser("user-0001");
   }
 
-  public function testAuthenticateUserShouldReturnToken() {
+  public function testGenerateTokenShouldReturnToken() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
     $userId = "user-0001";
@@ -651,7 +651,12 @@ final class UsersTest extends TestCase {
       "secretKey" => $secretKey,
     ));
 
-    $token = $pushNotifications->generateToken($userId);
+    $tokenArray = $pushNotifications->generateToken($userId);
+    $this->assertInternalType('array', $tokenArray);
+
+    $token = $tokenArray['token'];
+    $this->assertInternalType('string', $token);
+
     $decodedToken = JWT::decode($token, $secretKey, array("HS256"));
 
     $expectedIssuer = "https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
@@ -666,7 +671,7 @@ final class UsersTest extends TestCase {
     $this->assertGreaterThan($now, $expiry);
   }
 
-  public function testAuthenticateUserShouldErrorIfUserIdNotAString() {
+  public function testGenerateTokenShouldErrorIfUserIdNotAString() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
     $userId = false;
@@ -681,7 +686,7 @@ final class UsersTest extends TestCase {
     $token = $pushNotifications->generateToken($userId);
   }
 
-  public function testAuthenticateUserShouldErrorIfUserIdEmpty() {
+  public function testGenerateTokenShouldErrorIfUserIdEmpty() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
     $userId = "";
@@ -696,7 +701,7 @@ final class UsersTest extends TestCase {
     $token = $pushNotifications->generateToken($userId);
   }
 
-  public function testAuthenticateUserShouldErrorIfUserTooLong() {
+  public function testGenerateTokenShouldErrorIfUserTooLong() {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
 
