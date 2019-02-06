@@ -1,6 +1,7 @@
 <?php
 namespace Pusher\PushNotifications;
 
+use Firebase\JWT\JWT;
 use GuzzleHttp;
 
 /**
@@ -13,6 +14,9 @@ class PushNotifications {
   const MAX_INTERESTS = 100;
   const MAX_INTEREST_LENGTH = 164;
   const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
+  const MAX_USERS = 1000;
+  const MAX_USER_ID_LENGTH = 164;
+  const AUTH_TOKEN_DURATION_SECS = 24 * 60 * 60;
 
   private $options = array();
   private $client = null;
@@ -60,7 +64,53 @@ class PushNotifications {
     }
   }
 
+  private function makeRequest($method, $path, $pathParams, $body = null) {
+    $escapedPathParams = [];
+    foreach ($pathParams as $k => $v) {
+      $escapedPathParams[$k] = urlencode($v);
+    }
+
+    $endpoint = $this->options["endpoint"];
+    $interpolatedPath = strtr($path, $escapedPathParams);
+    $url = $endpoint . $interpolatedPath;
+
+    try {
+      $response = $this->client->request(
+        $method,
+        $url,
+        [
+          "headers" => [
+            "Authorization" => "Bearer " . $this->options["secretKey"],
+            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
+          ],
+          "json" => $body
+        ]
+      );
+    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+      $response = $e->GetResponse();
+      $parsedResponse = json_decode($response->GetBody());
+      $badJSON = $parsedResponse == null;
+      if (
+        $badJSON ||
+        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
+        !ARRAY_KEY_EXISTS('description', $parsedResponse)
+      ) {
+        throw new \Exception("An unexpected server error has occurred");
+      }
+      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
+    }
+
+    $parsedResponse = json_decode($response->GetBody());
+
+    return $parsedResponse;
+  }
+
   public function publish($interests, $publishRequest) {
+    trigger_error('publish method is deprecated. Please use publishToInterests instead.', E_USER_DEPRECATED);
+    return $this->publishToInterests($interests, $publishRequest);
+  }
+
+  public function publishToInterests($interests, $publishRequest) {
     if (!is_array($interests)) {
       throw new \Exception("'interests' must be an array");
     }
@@ -94,38 +144,103 @@ class PushNotifications {
     }
 
     $publishRequest['interests'] = $interests;
-    $url = $this->options["endpoint"] . '/publish_api/v1/instances/' . $this->options["instanceId"] . '/publishes';
-    try {
-      $response = $this->client->request(
-        'POST',
-        $url,
-        [
-          "headers" => [
-            "Authorization" => "Bearer " . $this->options["secretKey"],
-            "X-Pusher-Library" => "pusher-push-notifications-php " . PushNotifications::SDK_VERSION
-          ],
-          "json" => $publishRequest
-        ]
-      );
-    } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-      $response = $e->GetResponse();
-      $parsedResponse = json_decode($response->GetBody());
-      $badJSON = $parsedResponse == null;
-      if (
-        $badJSON ||
-        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
-        !ARRAY_KEY_EXISTS('description', $parsedResponse)
-      ) {
-        throw new \Exception("An unexpected server error has occurred");
-      }
-      throw new \Exception("{$parsedResponse->error}: {$parsedResponse->description}");
-    }
+    $path = '/publish_api/v1/instances/INSTANCE_ID/publishes/interests';
+    $pathParams = [
+      'INSTANCE_ID' => $this->options["instanceId"]
+    ];
+    $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
-    $parsedResponse = json_decode($response->GetBody());
-    if ($parsedResponse == null) {
+    if ($response == null) {
       throw new \Exception("An unexpected server error has occurred");
     }
 
-    return $parsedResponse;
+    return $response;
+  }
+
+  public function publishToUsers($userIds, $publishRequest) {
+    if (!is_array($userIds)) {
+      throw new \Exception("'userIds' must be an array");
+    }
+    if (count($userIds) == 0) {
+      throw new \Exception("Publishes must target at least one user");
+    }
+    if (count($userIds) > PushNotifications::MAX_USERS) {
+      throw new \Exception("Number of user ids exceeds maximum of " . PushNotifications::MAX_USERS);
+    }
+    if (!is_array($publishRequest)) {
+      throw new \Exception("'publishBody' must be an array");
+    }
+
+    foreach($userIds as $userId) {
+      if (!is_string($userId)) {
+        throw new \Exception("User id \"$userId\" is not a string");
+      }
+      if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+        throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
+      }
+      if (strlen($userId) == 0) {
+        throw new \Exception("User ids cannot be the empty string");
+      }
+    }
+
+    $publishRequest['users'] = $userIds;
+    $path = '/publish_api/v1/instances/INSTANCE_ID/publishes/users';
+    $pathParams = [
+      'INSTANCE_ID' => $this->options["instanceId"]
+    ];
+    $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
+
+    if ($response == null) {
+      throw new \Exception("An unexpected server error has occurred");
+    }
+
+    return $response;
+  }
+
+  public function deleteUser($userId) {
+    if (!is_string($userId)) {
+      throw new \Exception("User id must be a string");
+    }
+    if (strlen($userId) == 0) {
+      throw new \Exception("User id cannot be the empty string");
+    }
+    if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+      throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
+    }
+
+    $path = '/customer_api/v1/instances/INSTANCE_ID/users/USER_ID';
+    $pathParams = [
+      'INSTANCE_ID' => $this->options["instanceId"],
+      'USER_ID' => $userId
+    ];
+    $this->makeRequest("DELETE", $path, $pathParams);
+  }
+
+  public function generateToken($userId) {
+    if (!is_string($userId)) {
+      throw new \Exception("User id must be a string");
+    }
+    if (strlen($userId) == 0) {
+      throw new \Exception("User id cannot be the empty string");
+    }
+    if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+      throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
+    }
+
+    $instanceId = $this->options["instanceId"];
+    $secretKey = $this->options["secretKey"];
+
+    $issuer = "https://$instanceId.pushnotifications.pusher.com";
+    $claims = [
+      "iss" => $issuer,
+      "sub" => $userId,
+      "exp" => time() + PushNotifications::AUTH_TOKEN_DURATION_SECS
+    ];
+
+    $token = JWT::encode($claims, $secretKey);
+
+    return [
+      "token" => $token
+    ];
   }
 }

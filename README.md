@@ -18,6 +18,7 @@ This SDK depends on [the JSON PHP module](http://php.net/manual/en/json.installa
 
 ## Use
 
+### Configuring the SDK for your instance
 ```php
 <?php
 require __DIR__ . '/vendor/autoload.php';
@@ -26,15 +27,50 @@ $pushNotifications = new \Pusher\PushNotifications\PushNotifications(array(
   "instanceId" => "YOUR_INSTANCE_ID_HERE",
   "secretKey" => "YOUR_SECRET_HERE",
 ));
-$publishResponse = $pushNotifications->publish(array("donuts"), array(
-  "apns" => array("aps" => array(
-    "alert" => "Hello!",
-  )),
-  "fcm" => array("notification" => array(
-    "title" => "Hello!",
-    "body" => "Hello, world!",
-  )),
-));
+```
+
+### Publishing to Device Interests
+You can broadcast notifications to groups of subscribed devices using [Device Interests](https://docs.pusher.com/beams/concepts/device-interests):
+```php
+$publishResponse = $pushNotifications->publishToInterests(
+  ["donuts"],
+  [
+    "apns" => [
+      "aps" => [
+        "alert" => "Hello!",
+      ],
+    ],
+    "fcm" => [
+      "notification" => [
+        "title" => "Hello!",
+        "body" => "Hello, world!",
+      ],
+    ],
+  ]
+);
+
+echo("Published with Publish ID: " . $publishResponse->publishId . "\n");
+```
+
+### Publishing to Authenticated Users
+Securely send notifications to individual users of your application using [Authenticated Users](https://docs.pusher.com/beams/concepts/authenticated-users):
+```php
+$publishResponse = $pushNotifications->publishToUsers(
+  ["user-0001"],
+  [
+    "apns" => [
+      "aps" => [
+        "alert" => "Hello!",
+      ],
+    ],
+    "fcm" => [
+      "notification" => [
+        "title" => "Hello!",
+        "body" => "Hello, world!",
+      ],
+    ],
+  ]
+);
 
 echo("Published with Publish ID: " . $publishResponse->publishId . "\n");
 ```
