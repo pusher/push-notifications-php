@@ -10,7 +10,7 @@ use GuzzleHttp;
  * http://www.pusher.com/push-notifications
  */
 class PushNotifications {
-  const SDK_VERSION = "1.0.0";
+  const SDK_VERSION = "1.1.0";
   const MAX_INTERESTS = 100;
   const MAX_INTEREST_LENGTH = 164;
   const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
