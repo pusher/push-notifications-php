@@ -92,8 +92,8 @@ class PushNotifications {
       $badJSON = $parsedResponse == null;
       if (
         $badJSON ||
-        !isset($parsedResponse->error) ||
-        !isset($parsedResponse->description)
+        !property_exists($parsedResponse, 'error') ||
+        !property_exists($parsedResponse, 'description')
       ) {
         throw new \Exception("An unexpected server error has occurred");
       }
