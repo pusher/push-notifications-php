@@ -1,0 +1,5 @@
+#!/bin/bash -eu
+set -o pipefail
+
+# Run tests
+./vendor/phpunit/phpunit/phpunit ./tests
