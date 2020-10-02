@@ -1,0 +1,11 @@
+#!/bin/bash -eu
+set -o pipefail
+
+# Downgrade to guzzle 6
+sed -i "s/^.*guzzlehttp\/guzzle.*$/\"guzzlehttp\/guzzle\"\: \"\~6\.0\",/" composer.json
+
+# Install downgraded version
+composer update guzzlehttp/guzzle
+
+# Run tests
+./vendor/phpunit/phpunit/phpunit ./tests
