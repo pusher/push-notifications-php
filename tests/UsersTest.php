@@ -51,7 +51,7 @@ final class UsersTest extends TestCase {
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedContentType = "application/json";
     $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
-    $expectedSDK = "pusher-push-notifications-php 1.1.0";
+    $expectedSDK = "pusher-push-notifications-php 1.1.2";
 
     $expectedBody = [
       "users" => ["user-0001"],
@@ -464,7 +464,7 @@ final class UsersTest extends TestCase {
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedContentType = "application/json";
     $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
-    $expectedSDK = "pusher-push-notifications-php 1.1.0";
+    $expectedSDK = "pusher-push-notifications-php 1.1.2";
 
     $request = $container[0]["request"];
     $this->assertNotNull($request, "Request should not be null");
