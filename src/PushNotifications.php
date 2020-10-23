@@ -25,7 +25,7 @@ class PushNotifications {
     $this->options = $options;
     if (!is_array($this->options)) {
       throw new \Exception("Options parameter must be an array");
-    } 
+    }
     if ($client == null) {
       $this->client = new GuzzleHTTP\Client();
     } else {
@@ -92,8 +92,8 @@ class PushNotifications {
       $badJSON = $parsedResponse == null;
       if (
         $badJSON ||
-        !ARRAY_KEY_EXISTS('error', $parsedResponse) ||
-        !ARRAY_KEY_EXISTS('description', $parsedResponse)
+        !property_exists($parsedResponse, 'error') ||
+        !property_exists($parsedResponse, 'description')
       ) {
         throw new \Exception("An unexpected server error has occurred");
       }
