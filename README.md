@@ -58,6 +58,35 @@ $publishResponse = $pushNotifications->publishToInterests(
 echo("Published with Publish ID: " . $publishResponse->publishId . "\n");
 ```
 
+### Publishing to Device Interests along with data
+
+You can broadcast notifications with some data to groups of subscribed devices using [Device Interests](https://docs.pusher.com/beams/concepts/device-interests):
+
+```php
+$publishResponse = $pushNotifications->publishToInterests(
+  ["donuts"],
+  [
+    "apns" => [
+      "aps" => [
+        "alert" => "Hello!",
+      ],
+    ],
+    "fcm" => [
+      "notification" => [
+        "title" => "Hello!",
+        "body" => "Hello, world!",
+      ],
+      "data" => [
+         "name" => "adam",
+         "type" => "user",
+      ],
+    ],
+  ]
+);
+
+echo("Published with Publish ID: " . $publishResponse->publishId . "\n");
+```
+
 ### Publishing to Authenticated Users
 
 Securely send notifications to individual users of your application using [Authenticated Users](https://docs.pusher.com/beams/concepts/authenticated-users):
