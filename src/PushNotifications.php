@@ -10,7 +10,7 @@ use GuzzleHttp;
  * http://www.pusher.com/push-notifications
  */
 class PushNotifications {
-  const SDK_VERSION = "1.1.2";
+  const SDK_VERSION = "2.0";
   const MAX_INTERESTS = 100;
   const MAX_INTEREST_LENGTH = 164;
   const INTEREST_REGEX = "/^(_|-|=|@|,|\\.|;|[A-Z]|[a-z]|[0-9])+$/";
@@ -18,27 +18,14 @@ class PushNotifications {
   const MAX_USER_ID_LENGTH = 164;
   const AUTH_TOKEN_DURATION_SECS = 24 * 60 * 60;
 
-  private $options = array();
-  private $client = null;
-
-  public function __construct($options, $client = null) {
-    $this->options = $options;
-    if (!is_array($this->options)) {
-      throw new \Exception("Options parameter must be an array");
-    }
-    if ($client == null) {
-      $this->client = new GuzzleHTTP\Client();
-    } else {
-      $this->client = $client;
-    }
-
+  public function __construct(private array $options, private GuzzleHTTP\Client|null $client = null) {
     if (!array_key_exists("instanceId", $this->options)) {
       throw new \Exception("Required 'instanceId' in Pusher\PushNotifications constructor options");
     }
     if (!is_string($this->options["instanceId"])) {
       throw new \Exception("'instanceId' must be a string");
     }
-    if ($this->options["instanceId"] == "") {
+    if ($this->options["instanceId"] === "") {
       throw new \Exception("'instanceId' cannot be the empty string");
     }
 
@@ -48,7 +35,7 @@ class PushNotifications {
     if (!is_string($this->options["secretKey"])) {
       throw new \Exception("'secretKey' must be a string");
     }
-    if ($this->options["secretKey"] == "") {
+    if ($this->options["secretKey"] === "") {
       throw new \Exception("'secretKey' cannot be the empty string");
     }
 
@@ -58,13 +45,13 @@ class PushNotifications {
       if (!is_string($this->options["endpoint"])) {
         throw new \Exception("'endpoint' must be a string");
       }
-      if ($this->options["endpoint"] == "") {
+      if ($this->options["endpoint"] === "") {
         throw new \Exception("'endpoint' cannot be the empty string");
       }
     }
   }
 
-  private function makeRequest($method, $path, $pathParams, $body = null) {
+  private function makeRequest(string $method, string $path, array $pathParams, array|null $body = null): mixed {
     $escapedPathParams = [];
     foreach ($pathParams as $k => $v) {
       $escapedPathParams[$k] = urlencode($v);
@@ -89,7 +76,7 @@ class PushNotifications {
     } catch (\GuzzleHttp\Exception\BadResponseException $e) {
       $response = $e->GetResponse();
       $parsedResponse = json_decode($response->GetBody());
-      $badJSON = $parsedResponse == null;
+      $badJSON = $parsedResponse === null;
       if (
         $badJSON ||
         !property_exists($parsedResponse, 'error') ||
@@ -105,33 +92,28 @@ class PushNotifications {
     return $parsedResponse;
   }
 
-  public function publish($interests, $publishRequest) {
-    trigger_error('publish method is deprecated. Please use publishToInterests instead.', E_USER_DEPRECATED);
-    return $this->publishToInterests($interests, $publishRequest);
-  }
-
-  public function publishToInterests($interests, $publishRequest) {
-    if (!is_array($interests)) {
-      throw new \Exception("'interests' must be an array");
-    }
-    if (count($interests) == 0) {
+    /**
+     * @param array $interests
+     * @param array<string> $publishRequest
+     * @return mixed
+     * @throws \Exception
+     */
+  public function publishToInterests(array $interests, array $publishRequest): mixed {
+    if (count($interests) === 0) {
       throw new \Exception("Publishes must target at least one interest");
     }
     if (count($interests) > PushNotifications::MAX_INTERESTS) {
       throw new \Exception("Number of interests exceeds maximum of " . PushNotifications::MAX_INTERESTS);
-    }
-    if(!is_array($publishRequest)) {
-      throw new \Exception("'publishBody' must be an array");
     }
 
     foreach($interests as $interest) {
       if (!is_string($interest)) {
         throw new \Exception("Interest \"$interest\" is not a string");
       }
-      if (strlen($interest) > PushNotifications::MAX_INTEREST_LENGTH) {
+      if (mb_strlen($interest) > PushNotifications::MAX_INTEREST_LENGTH) {
         throw new \Exception("Interest \"$interest\" is longer than the maximum length of " . PushNotifications::MAX_INTEREST_LENGTH . " chars.");
       }
-      if (strlen($interest) == 0) {
+      if ( $interest === '' ) {
         throw new \Exception("Interest names cannot be the empty string");
       }
       if (!preg_match(PushNotifications::INTEREST_REGEX, $interest)) {
@@ -150,37 +132,23 @@ class PushNotifications {
     ];
     $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
-    if ($response == null) {
+    if ($response === null) {
       throw new \Exception("An unexpected server error has occurred");
     }
 
     return $response;
   }
 
-  public function publishToUsers($userIds, $publishRequest) {
-    if (!is_array($userIds)) {
-      throw new \Exception("'userIds' must be an array");
-    }
-    if (count($userIds) == 0) {
+  public function publishToUsers(array $userIds, array $publishRequest): mixed {
+    if (count($userIds) === 0) {
       throw new \Exception("Publishes must target at least one user");
     }
     if (count($userIds) > PushNotifications::MAX_USERS) {
       throw new \Exception("Number of user ids exceeds maximum of " . PushNotifications::MAX_USERS);
     }
-    if (!is_array($publishRequest)) {
-      throw new \Exception("'publishBody' must be an array");
-    }
 
     foreach($userIds as $userId) {
-      if (!is_string($userId)) {
-        throw new \Exception("User id \"$userId\" is not a string");
-      }
-      if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
-        throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
-      }
-      if (strlen($userId) == 0) {
-        throw new \Exception("User ids cannot be the empty string");
-      }
+      $this->checkUserId($userId);
     }
 
     $publishRequest['users'] = $userIds;
@@ -190,23 +158,15 @@ class PushNotifications {
     ];
     $response = $this->makeRequest("POST", $path, $pathParams, $publishRequest);
 
-    if ($response == null) {
+    if ($response === null) {
       throw new \Exception("An unexpected server error has occurred");
     }
 
     return $response;
   }
 
-  public function deleteUser($userId) {
-    if (!is_string($userId)) {
-      throw new \Exception("User id must be a string");
-    }
-    if (strlen($userId) == 0) {
-      throw new \Exception("User id cannot be the empty string");
-    }
-    if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
-      throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
-    }
+  public function deleteUser(string $userId): void {
+    $this->checkUserId($userId);
 
     $path = '/customer_api/v1/instances/INSTANCE_ID/users/USER_ID';
     $pathParams = [
@@ -216,16 +176,8 @@ class PushNotifications {
     $this->makeRequest("DELETE", $path, $pathParams);
   }
 
-  public function generateToken($userId) {
-    if (!is_string($userId)) {
-      throw new \Exception("User id must be a string");
-    }
-    if (strlen($userId) == 0) {
-      throw new \Exception("User id cannot be the empty string");
-    }
-    if (strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
-      throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
-    }
+  public function generateToken(string $userId): array {
+      $this->checkUserId($userId);
 
     $instanceId = $this->options["instanceId"];
     $secretKey = $this->options["secretKey"];
@@ -237,10 +189,19 @@ class PushNotifications {
       "exp" => time() + PushNotifications::AUTH_TOKEN_DURATION_SECS
     ];
 
-    $token = JWT::encode($claims, $secretKey);
+    $token = JWT::encode($claims, $secretKey, 'HS256');
 
     return [
       "token" => $token
     ];
+  }
+
+  private function checkUserId(string $userId): void {
+      if ($userId === '') {
+          throw new \Exception("User id cannot be the empty string");
+      }
+      if (mb_strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
+          throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
+      }
   }
 }

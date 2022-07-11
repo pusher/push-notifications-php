@@ -6,7 +6,7 @@ PHP server library for publishing notifications through Pusher Beams.
 
 Check https://docs.pusher.com/beams/reference/server-sdk-php for more information.
 
-**NOTE: This library requires a PHP version of 5.6 or greater**
+**NOTE: This library requires a PHP version of 8.0 or greater**
 
 ## Installation
 
