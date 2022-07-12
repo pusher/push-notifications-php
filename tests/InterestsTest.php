@@ -50,7 +50,7 @@ final class InterestsTest extends TestCase {
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedContentType = "application/json";
     $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
-    $expectedSDK = "pusher-push-notifications-php 2.0";
+    $expectedSDK = "pusher-push-notifications-php 2.0.0";
 
     $expectedBody = [
       "interests" => ["donuts"],

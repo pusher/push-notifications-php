@@ -34,11 +34,5 @@ jobs:
       - name: Run lint
         run: ./vendor/bin/phplint ./ --exclude=vendor
 
-      - name: Run unit tests
-        run: composer exec phpunit tests/unit
-
-      - name: Run acceptance tests
-        env:
-          PUSHERAPP_INSTANCEID: ${{ secrets.CI_INSTANCE_ID }}
-          PUSHERAPP_SECRETKEY: ${{ secrets.CI_SECRET_KEY }}
-        run: composer exec phpunit tests/acceptance
+      - name: Run tests
+        run: ./vendor/bin/phpunit
