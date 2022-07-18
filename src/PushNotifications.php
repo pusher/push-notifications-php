@@ -18,7 +18,9 @@ class PushNotifications {
   const MAX_USER_ID_LENGTH = 164;
   const AUTH_TOKEN_DURATION_SECS = 24 * 60 * 60;
 
-  public function __construct(private array $options, private GuzzleHTTP\Client|null $client = null) {
+  private GuzzleHTTP\Client $client;
+
+  public function __construct(private array $options, GuzzleHTTP\Client|null $client = null) {
     if (!array_key_exists("instanceId", $this->options)) {
       throw new \Exception("Required 'instanceId' in Pusher\PushNotifications constructor options");
     }
@@ -48,6 +50,12 @@ class PushNotifications {
       if ($this->options["endpoint"] === "") {
         throw new \Exception("'endpoint' cannot be the empty string");
       }
+    }
+
+    if (!$client) {
+      $this->client = new GuzzleHttp\Client();
+    } else {
+      $this->client = $client;
     }
   }
 
@@ -203,5 +211,10 @@ class PushNotifications {
       if (mb_strlen($userId) > PushNotifications::MAX_USER_ID_LENGTH) {
           throw new \Exception("User id \"$userId\" is longer than the maximum length of " . PushNotifications::MAX_USER_ID_LENGTH . " chars.");
       }
+  }
+
+  public function getClient(): GuzzleHttp\Client
+  {
+      return $this->client;
   }
 }

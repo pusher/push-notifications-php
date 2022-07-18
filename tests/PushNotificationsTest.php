@@ -66,4 +66,45 @@ final class PushNotificationsTest extends TestCase {
       "secretKey" => "",
     ]);
   }
+
+  public function testConstructorShouldErrorIfWrongClientTypeIsGiven(): void
+  {
+      $this->expectException(TypeError::class);
+      new Pusher\PushNotifications\PushNotifications(
+        [
+          "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+          "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+        ],
+        []
+      );
+  }
+
+  public function testConstructorShouldMakeANewClientIfNoneIsGiven(): void
+  {
+      $notification = new Pusher\PushNotifications\PushNotifications(
+        [
+          "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+          "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+        ],
+  null
+      );
+
+      $this->assertInstanceOf(\GuzzleHttp\Client::class, $notification->getClient());
+  }
+
+  public function testConstructShouldUseGivenClient(): void
+  {
+      $url = 'https://pusher.com/';
+      $client = new \GuzzleHttp\Client(['base_url' => $url]);
+
+      $notification = new Pusher\PushNotifications\PushNotifications(
+        [
+          "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
+          "secretKey" => "EIJ2EESAH8DUUMAI8EE",
+        ],
+        $client
+      );
+
+      $this->assertSame($client, $notification->getClient());
+  }
 }
