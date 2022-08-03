@@ -3,7 +3,7 @@ use PHPUnit\Framework\TestCase;
 use Firebase\JWT\JWT;
 
 final class UsersTest extends TestCase {
-  public function testPublishToUsersShouldMakeRequestIfValid() {
+  public function testPublishToUsersShouldMakeRequestIfValid(): void {
     // Record history
     $container = [];
     $history = GuzzleHttp\Middleware::history($container);
@@ -21,10 +21,10 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
+    ], $client);
     $result = $pushNotifications->publishToUsers(
       ["user-0001"],
       [
@@ -51,7 +51,7 @@ final class UsersTest extends TestCase {
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedContentType = "application/json";
     $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
-    $expectedSDK = "pusher-push-notifications-php 1.1.2";
+    $expectedSDK = "pusher-push-notifications-php 2.0.0";
 
     $expectedBody = [
       "users" => ["user-0001"],
@@ -91,162 +91,159 @@ final class UsersTest extends TestCase {
     $this->assertEquals($expectedPublishId, $result->publishId);
   }
 
-  public function testPublishToUsersShouldErrorIfUserIdsNotArray() {
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage("'userIds' must be an array");
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+  public function testPublishToUsersShouldErrorIfUserIdsNotArray(): void {
+    $this->expectException(TypeError::class);
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       null,
-      array(
-        "apns" => array("aps" => array(
+      [
+        "apns" => ["aps" => [
           "alert" => "Hello!",
-        )),
-        "fcm" => array("notification" => array(
+        ]],
+        "fcm" => ["notification" => [
           "title" => "Hello!",
           "body" => "Hello, world!",
-        )),
-      )
+        ]],
+      ]
     );
   }
 
-  public function testPublishToUsersShouldErrorIfNoUserIds() {
+  public function testPublishToUsersShouldErrorIfNoUserIds(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("Publishes must target at least one user");
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       [],
-      array(
-        "apns" => array("aps" => array(
+      [
+        "apns" => ["aps" => [
           "alert" => "Hello!",
-        )),
-        "fcm" => array("notification" => array(
+        ]],
+        "fcm" => ["notification" => [
           "title" => "Hello!",
           "body" => "Hello, world!",
-        )),
-      )
+        ]],
+      ]
     );
   }
 
-  public function testPublishToUsersShouldErrorIfTooManyUserIds() {
+  public function testPublishToUsersShouldErrorIfTooManyUserIds(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("Number of user ids exceeds maximum");
 
     $userIds = [];
     for($i = 0; $i < 1001; $i++) {
-      array_push($userIds, "user-" . $i);
+      $userIds[] = "user-" . $i;
     }
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       $userIds,
-      array(
-        "apns" => array("aps" => array(
+      [
+        "apns" => ["aps" => [
           "alert" => "Hello!",
-        )),
-        "fcm" => array("notification" => array(
+        ]],
+        "fcm" => ["notification" => [
           "title" => "Hello!",
           "body" => "Hello, world!",
-        )),
-      )
+        ]],
+      ]
     );
   }
 
-  public function testPublishToUsersShouldErrorIfUserIdNotString() {
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage("not a string");
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+  public function testPublishToUsersShouldErrorIfUserIdNotString(): void {
+    $this->expectException(TypeError::class);
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       [null],
-      array(
-        "apns" => array("aps" => array(
+      [
+        "apns" => ["aps" => [
           "alert" => "Hello!",
-        )),
-        "fcm" => array("notification" => array(
+        ]],
+        "fcm" => ["notification" => [
           "title" => "Hello!",
           "body" => "Hello, world!",
-        )),
-      )
+        ]],
+      ]
     );
   }
 
-  public function testPublishToUsersShouldErrorIfUserIdTooLong() {
+  public function testPublishToUsersShouldErrorIfUserIdTooLong(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("longer than the maximum");
 
     $userIdLength = 165;
     $userId = "";
     for($i = 0; $i < $userIdLength; $i++) {
-      $userId = $userId . 'A';
+      $userId .= 'A';
     }
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       [$userId],
-      array(
-        "apns" => array("aps" => array(
+      [
+        "apns" => ["aps" => [
           "alert" => "Hello!",
-        )),
-        "fcm" => array("notification" => array(
+        ]],
+        "fcm" => ["notification" => [
           "title" => "Hello!",
           "body" => "Hello, world!",
-        )),
-      )
+        ]],
+      ]
     );
   }
 
-  public function testPublishToUsersShouldErrorIfUserIdIsEmptyString() {
+  public function testPublishToUsersShouldErrorIfUserIdIsEmptyString(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("cannot be the empty string");
 
     $userId = "";
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       [$userId],
-      array(
-        "apns" => array("aps" => array(
+      [
+        "apns" => ["aps" => [
           "alert" => "Hello!",
-        )),
-        "fcm" => array("notification" => array(
+        ]],
+        "fcm" => ["notification" => [
           "title" => "Hello!",
           "body" => "Hello, world!",
-        )),
-      )
+        ]],
+      ]
     );
   }
 
-  public function testPublishToUsersShouldErrorIfPublishBodyNotArray() {
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage("'publishBody' must be an array");
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+  public function testPublishToUsersShouldErrorIfPublishBodyNotArray(): void {
+    $this->expectException(TypeError::class);
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ));
+    ]);
     $pushNotifications->publishToUsers(
       ["user-0001"],
       null
     );
   }
 
-  public function testPublishToUsersShouldErrorIfBadJsonReturned() {
+  public function testPublishToUsersShouldErrorIfBadJsonReturned(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -261,10 +258,10 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
+    ], $client);
     $result = $pushNotifications->publishToUsers(
       ["user-0001"],
       [
@@ -283,7 +280,7 @@ final class UsersTest extends TestCase {
     );
   }
 
-  public function testPublishToUsersShouldErrorIf4xxErrorReturned() {
+  public function testPublishToUsersShouldErrorIf4xxErrorReturned(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("error_type: error_description");
 
@@ -298,10 +295,10 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
+    ], $client);
     $result = $pushNotifications->publishToUsers(
       ["user-0001"],
       [
@@ -320,7 +317,7 @@ final class UsersTest extends TestCase {
     );
   }
 
-  public function testPublishToUsersShouldErrorIf5xxErrorReturned() {
+  public function testPublishToUsersShouldErrorIf5xxErrorReturned(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("error_type: error_description");
 
@@ -335,10 +332,10 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
+    ], $client);
     $result = $pushNotifications->publishToUsers(
       ["user-0001"],
       [
@@ -357,7 +354,7 @@ final class UsersTest extends TestCase {
     );
   }
 
-  public function testPublishToUsersShouldErrorIfBadErrorJson() {
+  public function testPublishToUsersShouldErrorIfBadErrorJson(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -372,10 +369,10 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
+    ], $client);
     $result = $pushNotifications->publishToUsers(
       ["user-0001"],
       [
@@ -394,7 +391,7 @@ final class UsersTest extends TestCase {
     );
   }
 
-  public function testPublishToUsersShouldErrorIfBadErrorSchema() {
+  public function testPublishToUsersShouldErrorIfBadErrorSchema(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -409,10 +406,10 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
+    ], $client);
     $result = $pushNotifications->publishToUsers(
       ["user-0001"],
       [
@@ -431,7 +428,7 @@ final class UsersTest extends TestCase {
     );
   }
 
-  public function testDeleteUserShouldMakeRequestIfValid() {
+  public function testDeleteUserShouldMakeRequestIfValid(): void {
     // Record history
     $container = [];
     $history = GuzzleHttp\Middleware::history($container);
@@ -449,11 +446,11 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
-    $result = $pushNotifications->deleteUser("user-0001");
+    ], $client);
+    $pushNotifications->deleteUser("user-0001");
 
     $expectedMethod = 'DELETE';
     $expectedUrl = implode([
@@ -464,7 +461,7 @@ final class UsersTest extends TestCase {
     $expectedHost = "a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedContentType = "application/json";
     $expectedAuth = "Bearer EIJ2EESAH8DUUMAI8EE";
-    $expectedSDK = "pusher-push-notifications-php 1.1.2";
+    $expectedSDK = "pusher-push-notifications-php 2.0.0";
 
     $request = $container[0]["request"];
     $this->assertNotNull($request, "Request should not be null");
@@ -484,37 +481,36 @@ final class UsersTest extends TestCase {
       "SDK header should be pusher-push-notifications-php <version>");
   }
 
-  public function testDeleteUserShouldErrorIfUserIdNotAString() {
+  public function testDeleteUserShouldErrorIfUserIdNotAString(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
-    $userId = false;
+    $userId = [];
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage("User id must be a string");
-    $token = $pushNotifications->deleteUser($userId);
+    $this->expectException(TypeError::class);
+    $pushNotifications->deleteUser($userId);
   }
 
-  public function testDeleteUserShouldErrorIfUserIdEmpty() {
+  public function testDeleteUserShouldErrorIfUserIdEmpty(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
     $userId = "";
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("User id cannot be the empty string");
-    $token = $pushNotifications->deleteUser($userId);
+    $pushNotifications->deleteUser($userId);
   }
 
-  public function testDeleteUserShouldErrorIfUserTooLong() {
+  public function testDeleteUserShouldErrorIfUserTooLong(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
 
@@ -524,17 +520,17 @@ final class UsersTest extends TestCase {
       $userId = $userId . 'A';
     }
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("longer than the maximum");
-    $token = $pushNotifications->deleteUser($userId);
+    $pushNotifications->deleteUser($userId);
   }
 
-  public function testDeleteUserShouldNotErrorIfBadJsonReturned() {
+  public function testDeleteUserShouldNotErrorIfBadJsonReturned(): void {
     $mock = new GuzzleHttp\Handler\MockHandler([
       new GuzzleHttp\Psr7\Response(
         $status=200,
@@ -546,14 +542,15 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
-    $result = $pushNotifications->deleteUser("user-0001");
+    ], $client);
+    $pushNotifications->deleteUser("user-0001");
+    $this->expectNotToPerformAssertions();
   }
 
-  public function testDeleteUserShouldErrorIf4xxErrorReturned() {
+  public function testDeleteUserShouldErrorIf4xxErrorReturned(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("error_type: error_description");
 
@@ -568,14 +565,14 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
-    $result = $pushNotifications->deleteUser("user-0001");
+    ], $client);
+    $pushNotifications->deleteUser("user-0001");
   }
 
-  public function testDeleteUserShouldErrorIf5xxErrorReturned() {
+  public function testDeleteUserShouldErrorIf5xxErrorReturned(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("error_type: error_description");
 
@@ -590,14 +587,14 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
-    $result = $pushNotifications->deleteUser("user-0001");
+    ], $client);
+    $pushNotifications->deleteUser("user-0001");
   }
 
-  public function testDeleteUserShouldErrorIfBadErrorJson() {
+  public function testDeleteUserShouldErrorIfBadErrorJson(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -612,14 +609,14 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
-    $result = $pushNotifications->deleteUser("user-0001");
+    ], $client);
+    $pushNotifications->deleteUser("user-0001");
   }
 
-  public function testDeleteUserShouldErrorIfBadErrorSchema() {
+  public function testDeleteUserShouldErrorIfBadErrorSchema(): void {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("unexpected server error");
 
@@ -634,30 +631,30 @@ final class UsersTest extends TestCase {
     $client = new GuzzleHttp\Client(['handler' => $handler]);
 
     // Make request
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => "a11aec92-146a-4708-9a62-8c61f46a82ad",
       "secretKey" => "EIJ2EESAH8DUUMAI8EE",
-    ), $client);
-    $result = $pushNotifications->deleteUser("user-0001");
+    ], $client);
+    $pushNotifications->deleteUser("user-0001");
   }
 
-  public function testGenerateTokenShouldReturnToken() {
+  public function testGenerateTokenShouldReturnToken(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
     $userId = "user-0001";
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
     $tokenArray = $pushNotifications->generateToken($userId);
-    $this->assertInternalType('array', $tokenArray);
+    $this->assertIsArray($tokenArray);
 
     $token = $tokenArray['token'];
-    $this->assertInternalType('string', $token);
+    $this->assertIsString($token);
 
-    $decodedToken = JWT::decode($token, $secretKey, array("HS256"));
+    $decodedToken = JWT::decode($token, new \Firebase\JWT\Key($secretKey, 'HS256'));
 
     $expectedIssuer = "https://a11aec92-146a-4708-9a62-8c61f46a82ad.pushnotifications.pusher.com";
     $expectedSubject = $userId;
@@ -671,50 +668,49 @@ final class UsersTest extends TestCase {
     $this->assertGreaterThan($now, $expiry);
   }
 
-  public function testGenerateTokenShouldErrorIfUserIdNotAString() {
+  public function testGenerateTokenShouldErrorIfUserIdNotAString(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
-    $userId = false;
+    $userId = [];
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
-    $this->expectException(Exception::class);
-    $this->expectExceptionMessage("User id must be a string");
+    $this->expectException(TypeError::class);
     $token = $pushNotifications->generateToken($userId);
   }
 
-  public function testGenerateTokenShouldErrorIfUserIdEmpty() {
+  public function testGenerateTokenShouldErrorIfUserIdEmpty(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
     $userId = "";
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("User id cannot be the empty string");
     $token = $pushNotifications->generateToken($userId);
   }
 
-  public function testGenerateTokenShouldErrorIfUserTooLong() {
+  public function testGenerateTokenShouldErrorIfUserTooLong(): void {
     $instanceId = "a11aec92-146a-4708-9a62-8c61f46a82ad";
     $secretKey = "EIJ2EESAH8DUUMAI8EE";
 
     $userIdLength = 165;
     $userId = "";
     for($i = 0; $i < $userIdLength; $i++) {
-      $userId = $userId . 'A';
+      $userId .= 'A';
     }
 
-    $pushNotifications = new Pusher\PushNotifications\PushNotifications(array(
+    $pushNotifications = new Pusher\PushNotifications\PushNotifications([
       "instanceId" => $instanceId,
       "secretKey" => $secretKey,
-    ));
+    ]);
 
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("longer than the maximum");
